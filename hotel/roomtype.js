@@ -1,25 +1,43 @@
-const express = require("express");
-const RoomType = require("../models/roomTypeSchema");
-const app = require("../app/app")
-const { MESSAGES } = require("../app/constants")
+const express = require('express');
+const router = express.Router();
+const auth = require('../hotel/auth');
+const { isAuthorized } = require('../middleware/authMiddleware');
+const RoomType = require('../models/roomTypeSchema');
+const authMiddleware = require('../middlewares/authMiddleware');
+const isAdminMiddleware = require('../middlewares/isAdminMiddleware');
 
-// create a roomtype
-app.post("/api/v1/rooms-types", async (req, res) => {
+// room type model
+const RoomType = require('../models/RoomType');
+
+// create room type
+router.post('/', auth, isAuthorized(['admin']), async (req, res) => {
+  const roomType = new RoomType({
+    name: req.body.name
+  });
+
   try {
-    const roomType = await RoomType.create(req.body);
-    res.status(200).send({message: MESSAGES.ROOM.CREATED, success: true, roomType})
+    const savedRoomType = await roomType.save();
+    res.send(savedRoomType);
   } catch (err) {
-    res.status(500).send({message: err.message || MESSAGES.ERROR, success: false})
+    res.status(400).send(err);
+  }
+});
+ 
+// DELETE endpoint for deleting a room type by its id
+router.delete('/:id', authMiddleware, isAdminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const roomType = await RoomType.findByIdAndDelete(id);
+
+    if (!roomType) {
+      return res.status(404).send({ error: 'Room type not found' });
+    }
+
+    res.send({ message: 'Room type deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ error: 'Internal server error' });
   }
 });
 
-// fetch all room types
-app.get("/api/v1/rooms-types", async (req, res) => {
-    try {
-        const roomtypes = await RoomType.find()
-        res.status(200)
-        .send({message: MESSAGES.ROOMTYPE.FETCHED, success: true, data: roomtypes})
-    } catch (err) {
-        res.status(500).send({message: err.message || MESSAGES.ERROR, success: false})
-    }
-})
+module.exports = router;

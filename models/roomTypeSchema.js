@@ -1,5 +1,6 @@
 const {model, Schema} = require("mongoose");
 const ObjectId = Schema.Types.ObjectId
+const auth = require('./hotel/auth')
 
 // Define the schema for the RoomType model
 const RoomTypeSchema = new Schema({
