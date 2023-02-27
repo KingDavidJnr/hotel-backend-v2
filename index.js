@@ -4,7 +4,7 @@ const constants = require('./app/constants')
 const database = require('./database/database')
 const app = express()
 const { MESSAGES } = constants;
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors())
 app.use(express.json())
